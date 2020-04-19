@@ -1,0 +1,51 @@
+---
+- name: Install docker
+  hosts: all
+  become: yes
+  vars:
+    user_name: psapp
+  tasks:
+  - name: Create group docker
+    group:
+      name: docker
+      state: present
+
+  - name: Create user psapp
+    user:
+      name: psapp
+      group: docker
+
+  - name: Install yum utils
+    yum:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+    - yum-utils
+    - lvm2
+    - device-mapper-persistent-data
+
+ - name: Install containerd.io
+    yum:
+      name: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/cont
+
+  - name: Add Docker repo
+    get_url:
+      url: https://download.docker.com/linux/centos/docker-ce.repo
+      dest: /etc/yum.repos.d/docker-ce.repo
+
+  - name: Install Docker
+    package:
+      name: docker-ce
+      state: latest
+
+  - name: Start Docker service
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Add user psapp to docker group
+    user:
+      name: psapp
+      groups: docker
+      append: yes
